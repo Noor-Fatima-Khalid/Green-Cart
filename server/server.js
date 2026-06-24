@@ -1,55 +1,54 @@
-    import cookieParser from 'cookie-parser';
-    import express from 'express';
-    import cors from 'cors';
-    import connectDB from './configs/db.js';
-    import userRouter from './routes/userRoute.js';
-    import sellerRouter from './routes/sellerRoute.js';
-    import connectCloudinary from './configs/cloudinary.js';
-    import productRouter from './routes/productRoute.js';
-    import cartRouter from './routes/cartRoute.js';
-    import addressRouter from './routes/addressRoute.js';
-    import orderRouter from './routes/orderRoute.js';
-    // import { stripeWebhooks } from './controllers/orderController.js';
-    const app = express();
+import cookieParser from 'cookie-parser';
+import express from 'express';
+import cors from 'cors';
+import connectDB from './configs/db.js';
+import userRouter from './routes/userRoute.js';
+import sellerRouter from './routes/sellerRoute.js';
+import connectCloudinary from './configs/cloudinary.js';
+import productRouter from './routes/productRoute.js';
+import cartRouter from './routes/cartRoute.js';
+import addressRouter from './routes/addressRoute.js';
+import orderRouter from './routes/orderRoute.js';
+// import { stripeWebhooks } from './controllers/orderController.js';
+import dotenv from "dotenv";
 
-    import dotenv from "dotenv";
-    dotenv.config();
+dotenv.config();
 
-    console.log("MONGO_URI:", process.env.MONGO_URI);
+const app = express();
 
-    const port = process.env.PORT || 8000;
+console.log("MONGO_URI:", process.env.MONGO_URI);
+console.log("NODE_ENV:", process.env.NODE_ENV);
 
-    await connectDB();
-    // await connectCloudinary();
+const port = process.env.PORT || 8000;
 
-    // Allow multiple origins
-    const allowedOrigins = ['http://localhost:5173', 'https://green-cart-n3ej.vercel.app'];
+await connectDB();
+// await connectCloudinary();
 
-    // app.post('/stripe', express.raw({type: 'application/json'}), stripeWebhooks);
+const allowedOrigins = [
+    'http://localhost:5173',
+    'https://green-cart-n3ej.vercel.app'
+];
 
-    // Middleware Configuration
-    app.use(express.json()); 
-    app.use(cookieParser());
-    app.use((req, res, next) => {
-        const origin = req.headers.origin;
-        if (allowedOrigins.includes(origin)) {
-            res.header('Access-Control-Allow-Origin', origin); // dynamically set origin
-        }
-        res.header('Access-Control-Allow-Credentials', 'true');
-        res.header('Access-Control-Allow-Methods', 'GET,POST,PUT,DELETE,OPTIONS');
-        res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-        next();
-    });
+// Proper CORS middleware
+app.use(cors({
+    origin: allowedOrigins,
+    credentials: true
+}));
 
+// Middleware
+app.use(express.json());
+app.use(cookieParser());
 
-    app.get('/', (req, res) => res.send('API is working!'));
-    app.use('/api/user', userRouter);
-    app.use('/api/seller', sellerRouter);
-    app.use('/api/product', productRouter);
-    app.use('/api/cart', cartRouter);
-    app.use('/api/address', addressRouter);
-    app.use('/api/order', orderRouter);
+// Routes
+app.get('/', (req, res) => res.send('API is working!'));
 
-    app.listen(port, () => {
-        console.log(`PORT connected on ${port}`);
-    })
+app.use('/api/user', userRouter);
+app.use('/api/seller', sellerRouter);
+app.use('/api/product', productRouter);
+app.use('/api/cart', cartRouter);
+app.use('/api/address', addressRouter);
+app.use('/api/order', orderRouter);
+
+app.listen(port, () => {
+    console.log(`PORT connected on ${port}`);
+});
